@@ -4,7 +4,7 @@ else ifneq ("$(wildcard /usr/local/cuda/bin/nvcc)", "")
 CUDAPATH ?= /usr/local/cuda
 endif
 
-IS_JETSON   ?= $(shell if grep -Fwq "Jetson" /proc/device-tree/model 2>/dev/null; then echo true; else echo false; fi)
+IS_JETSON   ?= $(shell if grep -Fwq "Orin" /proc/device-tree/model 2>/dev/null; then echo true; else echo false; fi)
 NVCC        :=  ${CUDAPATH}/bin/nvcc
 CCPATH      ?=
 
