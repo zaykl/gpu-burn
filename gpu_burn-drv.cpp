@@ -209,8 +209,8 @@ template <class T> class GPU_Test {
         bind();
         static const float alpha = 1.0f;
         static const float beta = 0.0f;
-        static const double alphaD = 1.0;
-        static const double betaD = 0.0;
+        static const int alphaD = 1;
+        static const int betaD = 0;
 
         for (size_t i = 0; i < d_iters; ++i) {
             if (d_doubles)
