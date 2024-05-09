@@ -60,7 +60,7 @@ extern "C" __global__ void compare(float *C, int *faultyElems, size_t iters) {
 // 	atomicAdd(faultyElems, myFaulty);
 // }
 
-extern "C" __global__ void compareD(int *C, int *faultyElems, size_t iters) {
+extern "C" __global__ void compareI(int *C, int *faultyElems, size_t iters) {
 	size_t iterStep = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
 	size_t myIndex = (blockIdx.y*blockDim.y + threadIdx.y)* // Y
 		gridDim.x*blockDim.x + // W

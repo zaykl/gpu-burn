@@ -107,8 +107,8 @@ bool g_running = false;
 
 template <class T> class GPU_Test {
   public:
-    GPU_Test(int dev, bool doubles, bool tensors, const char *kernelFile)
-        : d_devNumber(dev), d_doubles(doubles), d_tensors(tensors), d_kernelFile(kernelFile){
+    GPU_Test(int dev, bool useInt, bool tensors, const char *kernelFile)
+        : d_devNumber(dev), d_int(useInt), d_tensors(tensors), d_kernelFile(kernelFile){
         checkError(cuDeviceGet(&d_dev, d_devNumber));
         checkError(cuCtxCreate(&d_ctx, 0, d_dev));
 
@@ -183,7 +183,7 @@ template <class T> class GPU_Test {
                "using %lu MB of it), %s%s\n",
                d_devNumber, totalMemory() / 1024ul / 1024ul,
                availMemory() / 1024ul / 1024ul, useBytes / 1024ul / 1024ul,
-               d_doubles ? "using INT" : "using FLOATS",
+               d_int ? "using INT" : "using FLOATS",
                d_tensors ? ", using Tensor Cores" : "");
         size_t d_resultSize = sizeof(T) * SIZE * SIZE;
         d_iters = (useBytes - 2 * d_resultSize) /
@@ -230,7 +230,7 @@ template <class T> class GPU_Test {
         static const int betaD = 0;
 
         for (size_t i = 0; i < d_iters; ++i) {
-            if (d_doubles)
+            if (d_int)
                 int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int8_t *)d_Adata, SIZE,
                                 (const int8_t *)d_Bdata, SIZE,
                                 (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE);
@@ -252,7 +252,7 @@ template <class T> class GPU_Test {
         }
         checkError(cuModuleLoad(&d_module, d_kernelFile), "load module");
         checkError(cuModuleGetFunction(&d_function, d_module,
-                                       d_doubles ? "compareD" : "compare"),
+                                       d_int ? "compareI" : "compare"),
                    "get func");
 
         checkError(cuFuncSetCacheConfig(d_function, CU_FUNC_CACHE_PREFER_L1),
@@ -287,7 +287,7 @@ template <class T> class GPU_Test {
     bool shouldRun() { return g_running; }
 
   private:
-    bool d_doubles;
+    bool d_int;
     bool d_tensors;
     int d_devNumber;
     const char *d_kernelFile;
@@ -335,11 +335,11 @@ int initCuda() {
 }
 
 template <class T>
-void startBurn(int index, int writeFd, T *A, T *B, bool doubles, bool tensors,
+void startBurn(int index, int writeFd, T *A, T *B, bool useInt, bool tensors,
                ssize_t useBytes, const char *kernelFile) {
     GPU_Test<T> *our;
     try {
-        our = new GPU_Test<T>(index, doubles, tensors, kernelFile);
+        our = new GPU_Test<T>(index, useInt, tensors, kernelFile);
         our->initBuffers(A, B, useBytes);
     } catch (const std::exception &e) {
         fprintf(stderr, "Couldn't init a GPU test: %s\n", e.what());
@@ -666,7 +666,7 @@ void listenClients(std::vector<int> clientFd, std::vector<pid_t> clientPid,
 }
 
 template <class T>
-void launch(int runLength, bool useDoubles, bool useTensorCores,
+void launch(int runLength, bool useInt, bool useTensorCores,
             ssize_t useBytes, int device_id, const char * kernelFile,
             std::chrono::seconds sigterm_timeout_threshold_secs) {
 #if IS_JETSON
@@ -705,7 +705,7 @@ void launch(int runLength, bool useDoubles, bool useTensorCores,
             initCuda();
             int devCount = 1;
             write(writeFd, &devCount, sizeof(int));
-            startBurn<T>(device_id, writeFd, A, B, useDoubles, useTensorCores,
+            startBurn<T>(device_id, writeFd, A, B, useInt, useTensorCores,
                          useBytes, kernelFile);
             close(writeFd);
             return;
@@ -727,7 +727,7 @@ void launch(int runLength, bool useDoubles, bool useTensorCores,
             int devCount = initCuda();
             write(writeFd, &devCount, sizeof(int));
 
-            startBurn<T>(0, writeFd, A, B, useDoubles, useTensorCores,
+            startBurn<T>(0, writeFd, A, B, useInt, useTensorCores,
                          useBytes, kernelFile);
 
             close(writeFd);
@@ -754,7 +754,7 @@ void launch(int runLength, bool useDoubles, bool useTensorCores,
                         // Child
                         close(slavePipe[0]);
                         initCuda();
-                        startBurn<T>(i, slavePipe[1], A, B, useDoubles,
+                        startBurn<T>(i, slavePipe[1], A, B, useInt,
                                      useTensorCores, useBytes, kernelFile);
 
                         close(slavePipe[1]);
@@ -782,7 +782,7 @@ void showHelp() {
     printf("-m X\tUse X MB of memory.\n");
     printf("-m N%%\tUse N%% of the available GPU memory.  Default is %d%%\n",
            (int)(USEMEM * 100));
-    printf("-d\tUse doubles\n");
+    printf("-int\tUse int\n");
     printf("-tc\tTry to use Tensor cores\n");
     printf("-l\tLists all GPUs in the system\n");
     printf("-i N\tExecute only on GPU N\n");
@@ -792,7 +792,7 @@ void showHelp() {
            SIGTERM_TIMEOUT_THRESHOLD_SECS);
     printf("-h\tShow this help message\n\n");
     printf("Examples:\n");
-    printf("  gpu-burn -d 3600 # burns all GPUs with doubles for an hour\n");
+    printf("  gpu-burn -int 3600 # burns all GPUs with int for an hour\n");
     printf(
         "  gpu-burn -m 50%% # burns using 50%% of the available GPU memory\n");
     printf("  gpu-burn -l # list GPUs\n");
@@ -846,7 +846,7 @@ int main(int argc, char **argv) {
             thisParam++;
             return 0;
         }
-        if (argc >= 2 && std::string(argv[i]).find("-d") != std::string::npos) {
+        if (argc >= 2 && std::string(argv[i]).find("-int") != std::string::npos) {
             useInt = true;
             thisParam++;
         }
