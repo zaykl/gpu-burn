@@ -73,7 +73,7 @@ can be set to change the resulting image tag:
     
     -m X   Use X MB of memory
     -m N%  Use N% of the available GPU memory
-    -d     Use doubles
+    -d     Use int8
     -tc    Try to use Tensor cores (if available)
     -l     List all GPUs in the system
     -i N   Execute only on GPU N
