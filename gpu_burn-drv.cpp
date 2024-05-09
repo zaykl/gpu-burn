@@ -813,7 +813,7 @@ ssize_t decodeUSEMEM(const char *s) {
 }
 
 int main(int argc, char **argv) {
-    int runLength = 10;
+    int runLength = 2;
     bool useInt = false;
     bool useTensorCores = false;
     int thisParam = 0;
@@ -846,7 +846,7 @@ int main(int argc, char **argv) {
             thisParam++;
             return 0;
         }
-        if (argc >= 2 && std::string(argv[i]).find("-int") != std::string::npos) {
+        if (argc >= 2 && std::string(argv[i]).find("-d") != std::string::npos) {
             useInt = true;
             thisParam++;
         }
