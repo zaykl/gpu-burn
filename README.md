@@ -1,5 +1,5 @@
 # gpu-burn
-Multi-GPU CUDA stress test
+Multi-GPU CUDA stress test(support int8 and float compare)
 http://wili.cc/blog/gpu-burn.html
 
 # Easy docker build and run
@@ -14,6 +14,8 @@ sudo docker run --rm --gpus all gpu_burn
 sudo docker run --rm --gpus "device=0" gpu_burn
 #interact with gpu_burn
 sudo docker run -it --gpus all gpu_burn /bin/bash
+#load with local data
+sudo docker run -it -v ./:/data --gpus "device=0" gpu_burn /bin/bash
 ```
 
 # Binary packages
