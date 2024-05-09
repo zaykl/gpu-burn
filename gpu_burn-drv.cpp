@@ -132,9 +132,9 @@ template <class T> class GPU_Test {
     }
     ~GPU_Test() {
         bind();
-        checkError(cuMemFree(d_Cdata), "Free A");
-        checkError(cuMemFree(d_Adata), "Free B");
-        checkError(cuMemFree(d_Bdata), "Free C");
+        checkError(cuMemFree(d_Adata), "Free A");
+        checkError(cuMemFree(d_Bdata), "Free B");
+        checkError(cuMemFree(d_Cdata), "Free C");
         cuMemFreeHost(d_faultyElemsHost);
         printf("Freed memory for dev %d\n", d_devNumber);
 
@@ -183,7 +183,7 @@ template <class T> class GPU_Test {
                "using %lu MB of it), %s%s\n",
                d_devNumber, totalMemory() / 1024ul / 1024ul,
                availMemory() / 1024ul / 1024ul, useBytes / 1024ul / 1024ul,
-               d_doubles ? "using DOUBLES" : "using FLOATS",
+               d_doubles ? "using INT" : "using FLOATS",
                d_tensors ? ", using Tensor Cores" : "");
         size_t d_resultSize = sizeof(T) * SIZE * SIZE;
         d_iters = (useBytes - 2 * d_resultSize) /
@@ -215,11 +215,11 @@ template <class T> class GPU_Test {
         for (size_t i = 0; i < d_iters; ++i) {
             if (d_doubles)
                 checkError(
-                    cublasDgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
-                                SIZE, &alphaD, (const double *)d_Adata, SIZE,
-                                (const double *)d_Bdata, SIZE, &betaD,
-                                (double *)d_Cdata + i * SIZE * SIZE, SIZE),
-                    "DGEMM");
+                    cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
+                                SIZE, &alphaD, (const int *)d_Adata, SIZE,
+                                (const int *)d_Bdata, SIZE, &betaD,
+                                (int *)d_Cdata + i * SIZE * SIZE, SIZE),
+                    "SGEMM");
             else
                 checkError(
                     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
@@ -800,7 +800,7 @@ ssize_t decodeUSEMEM(const char *s) {
 
 int main(int argc, char **argv) {
     int runLength = 10;
-    bool useDoubles = false;
+    bool useInt = false;
     bool useTensorCores = false;
     int thisParam = 0;
     ssize_t useBytes = 0; // 0 == use USEMEM% of free mem
@@ -833,7 +833,7 @@ int main(int argc, char **argv) {
             return 0;
         }
         if (argc >= 2 && std::string(argv[i]).find("-d") != std::string::npos) {
-            useDoubles = true;
+            useInt = true;
             thisParam++;
         }
         if (argc >= 2 &&
@@ -900,11 +900,11 @@ int main(int argc, char **argv) {
     printf("Using compare file: %s\n", kernelFile);
     printf("Burning for %d seconds.\n", runLength);
 
-    if (useDoubles)
-        launch<double>(runLength, useDoubles, useTensorCores, useBytes,
+    if (useInt)
+        launch<int>(runLength, useInt, useTensorCores, useBytes,
                        device_id, kernelFile, sigterm_timeout_threshold_secs);
     else
-        launch<float>(runLength, useDoubles, useTensorCores, useBytes,
+        launch<float>(runLength, useInt, useTensorCores, useBytes,
                       device_id, kernelFile, sigterm_timeout_threshold_secs);
 
     return 0;
