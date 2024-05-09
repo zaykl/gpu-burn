@@ -68,7 +68,8 @@ extern "C" __global__ void compareD(int *C, int *faultyElems, size_t iters) {
 
 	int myFaulty = 0;
 	for (size_t i = 1; i < iters; ++i)
-		if (fabs(C[myIndex] - C[myIndex + i*iterStep]) > EPSILOND)
+	        if (C[myIndex] - C[myIndex + i*iterStep] > EPSILOND)
+
 			myFaulty++;
 
 	atomicAdd(faultyElems, myFaulty);

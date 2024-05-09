@@ -214,12 +214,12 @@ template <class T> class GPU_Test {
         const float beta = 0.0f;
         
         // Use CUBLAS_GEMM_DEFAULT_TENSOR_OP for enabling tensor core operations if supported
-        CHECK_CUBLAS(cublasGemmEx(
+        cublasGemmEx(
             handle, transa, transb, m, n, k,
             &alpha, A, CUDA_R_8I, lda, 
                     B, CUDA_R_8I, ldb,
             &beta,  C, CUDA_R_32I, ldc,
-            CUDA_R_32I, CUBLAS_GEMM_DEFAULT));
+            CUDA_R_32I, CUBLAS_GEMM_DEFAULT);
     }
 
     void compute() {
@@ -231,11 +231,9 @@ template <class T> class GPU_Test {
 
         for (size_t i = 0; i < d_iters; ++i) {
             if (d_doubles)
-                checkError(
-                    int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int8_t *)d_Adata, SIZE,
+                int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int8_t *)d_Adata, SIZE,
                                 (const int8_t *)d_Bdata, SIZE,
-                                (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE),
-                    "int8GEMM");
+                                (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE);
             else
                 checkError(
                     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
