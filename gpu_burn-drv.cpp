@@ -205,6 +205,23 @@ template <class T> class GPU_Test {
         initCompareKernel();
     }
 
+    void int8Gemm(cublasHandle_t handle, int m, int n, int k,
+                const int8_t* A, int lda, const int8_t* B, int ldb,
+                int32_t* C, int ldc) {
+        cublasOperation_t transa = CUBLAS_OP_N;
+        cublasOperation_t transb = CUBLAS_OP_N;
+        const float alpha = 1.0f;
+        const float beta = 0.0f;
+        
+        // Use CUBLAS_GEMM_DEFAULT_TENSOR_OP for enabling tensor core operations if supported
+        CHECK_CUBLAS(cublasGemmEx(
+            handle, transa, transb, m, n, k,
+            &alpha, A, CUDA_R_8I, lda, 
+                    B, CUDA_R_8I, ldb,
+            &beta,  C, CUDA_R_32I, ldc,
+            CUDA_R_32I, CUBLAS_GEMM_DEFAULT));
+    }
+
     void compute() {
         bind();
         static const float alpha = 1.0f;
@@ -215,11 +232,10 @@ template <class T> class GPU_Test {
         for (size_t i = 0; i < d_iters; ++i) {
             if (d_doubles)
                 checkError(
-                    cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
-                                SIZE, &alphaD, (const int *)d_Adata, SIZE,
-                                (const int *)d_Bdata, SIZE, &betaD,
-                                (int *)d_Cdata + i * SIZE * SIZE, SIZE),
-                    "SGEMM");
+                    int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int8_t *)d_Adata, SIZE,
+                                (const int8_t *)d_Bdata, SIZE,
+                                (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE),
+                    "int8GEMM");
             else
                 checkError(
                     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
