@@ -8,8 +8,12 @@ http://wili.cc/blog/gpu-burn.html
 git clone https://github.com/zaykl/gpu-burn
 cd gpu-burn
 sudo docker build -t gpu_burn .
+#burn with all gpu
 sudo docker run --rm --gpus all gpu_burn
+#burn with single gpu
 sudo docker run --rm --gpus "device=0" gpu_burn
+#interact with gpu_burn
+sudo docker run -it --gpus all gpu_burn /bin/bash
 ```
 
 # Binary packages
