@@ -5,10 +5,11 @@ http://wili.cc/blog/gpu-burn.html
 # Easy docker build and run
 
 ```
-git clone https://github.com/wilicc/gpu-burn
+git clone https://github.com/zaykl/gpu-burn
 cd gpu-burn
-docker build -t gpu_burn .
-docker run --rm --gpus all gpu_burn
+sudo docker build -t gpu_burn .
+sudo docker run --rm --gpus all gpu_burn
+sudo docker run --rm --gpus "device=0" gpu_burn
 ```
 
 # Binary packages
