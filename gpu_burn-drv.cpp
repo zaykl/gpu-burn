@@ -192,7 +192,9 @@ template <class T> class GPU_Test {
         printf("Results are %zu bytes each, thus performing %zu iterations\n",
                d_resultSize, d_iters);
         if ((size_t)useBytes < 3 * d_resultSize)
+        {
             throw std::string("Low mem for result. aborting.\n");
+        }
         checkError(cuMemAlloc(&d_Cdata, d_iters * d_resultSize), "C alloc");
         checkError(cuMemAlloc(&d_Adata, d_resultSize), "A alloc");
         checkError(cuMemAlloc(&d_Bdata, d_resultSize), "B alloc");
@@ -211,8 +213,8 @@ template <class T> class GPU_Test {
                 int32_t* C, int ldc) {
         cublasOperation_t transa = CUBLAS_OP_N;
         cublasOperation_t transb = CUBLAS_OP_N;
-        const float alpha = 1.0f;
-        const float beta = 0.0f;
+        const int32_t alpha = 1;
+        const int32_t beta = 0;
         
         // Use CUBLAS_GEMM_DEFAULT_TENSOR_OP for enabling tensor core operations if supported
         cublasGemmEx(
@@ -221,6 +223,23 @@ template <class T> class GPU_Test {
                     B, CUDA_R_8I, ldb,
             &beta,  C, CUDA_R_32I, ldc,
             CUDA_R_32I, CUBLAS_GEMM_DEFAULT);
+    }
+
+    void fp16Gemm(cublasHandle_t handle, int m, int n, int k,
+                const __half* A, int lda, const __half* B, int ldb,
+                __half* C, int ldc) {
+        cublasOperation_t transa = CUBLAS_OP_N;
+        cublasOperation_t transb = CUBLAS_OP_N;
+        static const __half alpha = __float2half(1.0f);
+        static const __half beta = __float2half(0.0f);
+        
+        // Use CUBLAS_GEMM_DEFAULT_TENSOR_OP for enabling tensor core operations if supported
+        cublasGemmEx(
+            handle, transa, transb, m, n, k,
+            &alpha, A, CUDA_R_16F, lda, 
+                    B, CUDA_R_16F, ldb,
+            &beta,  C, CUDA_R_16F, ldc,
+            CUDA_R_16F, CUBLAS_GEMM_DEFAULT);
     }
 
     void compute() {
@@ -242,12 +261,15 @@ template <class T> class GPU_Test {
                 //                 (const __half *)d_Bdata, SIZE, &beta,
                 //                 (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
                 //     "SGEMM");
-                checkError(
-                    cublasHgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
-                                SIZE, &alpha, (const __half *)d_Adata, SIZE,
-                                (const __half *)d_Bdata, SIZE, &beta,
-                                (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
-                    "HGEMM");
+                int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const __half *)d_Adata, SIZE,
+                                (const __half *)d_Bdata, SIZE,
+                                (__half *)d_Cdata + i * SIZE * SIZE, SIZE);
+                // checkError(
+                //     cublasHgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
+                //                 SIZE, &alpha, (const __half *)d_Adata, SIZE,
+                //                 (const __half *)d_Bdata, SIZE, &beta,
+                //                 (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
+                //     "HGEMM");
         }
     }
 
