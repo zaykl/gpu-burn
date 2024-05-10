@@ -1,5 +1,5 @@
 # gpu-burn
-Multi-GPU CUDA stress test(support int8 and float compare)
+Multi-GPU CUDA stress test(support int8 and float16 compare)
 http://wili.cc/blog/gpu-burn.html
 
 # Easy docker build and run
@@ -16,6 +16,9 @@ sudo docker run --rm --gpus "device=0" gpu_burn
 sudo docker run -it --gpus all gpu_burn /bin/bash
 #load with local data
 sudo docker run -it -v ./:/data --gpus "device=0" gpu_burn /bin/bash
+#compare float32/float16/int8 gemm
+nvcc test_gemm.cpp -o test_gemm -L/usr/local/cuda/lib64 -lcudart -lcuda -lcublas
+./test_gemm
 ```
 
 # Binary packages
