@@ -47,19 +47,19 @@ extern "C" __global__ void compare(__half *C, int *faultyElems, size_t iters) {
 	atomicAdd(faultyElems, myFaulty);
 }
 
-// extern "C" __global__ void compareD(double *C, int *faultyElems, size_t iters) {
-// 	size_t iterStep = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
-// 	size_t myIndex = (blockIdx.y*blockDim.y + threadIdx.y)* // Y
-// 		gridDim.x*blockDim.x + // W
-// 		blockIdx.x*blockDim.x + threadIdx.x; // X
+extern "C" __global__ void comparefp32(float *C, int *faultyElems, size_t iters) {
+	size_t iterStep = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
+	size_t myIndex = (blockIdx.y*blockDim.y + threadIdx.y)* // Y
+		gridDim.x*blockDim.x + // W
+		blockIdx.x*blockDim.x + threadIdx.x; // X
 
-// 	int myFaulty = 0;
-// 	for (size_t i = 1; i < iters; ++i)
-// 		if (fabs(C[myIndex] - C[myIndex + i*iterStep]) > EPSILOND)
-// 			myFaulty++;
+	int myFaulty = 0;
+	for (size_t i = 1; i < iters; ++i)
+		if (fabs(C[myIndex] - C[myIndex + i*iterStep]) > EPSILOND)
+			myFaulty++;
 
-// 	atomicAdd(faultyElems, myFaulty);
-// }
+	atomicAdd(faultyElems, myFaulty);
+}
 
 extern "C" __global__ void compareI(int *C, int *faultyElems, size_t iters) {
 	size_t iterStep = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
