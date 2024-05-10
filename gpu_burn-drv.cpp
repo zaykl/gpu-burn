@@ -944,7 +944,7 @@ int main(int argc, char **argv) {
     printf("Burning for %d seconds.\n", runLength);
 
     if (useInt)
-        launch<int8_t>(runLength, useInt, useTensorCores, useBytes,
+        launch<int16_t>(runLength, useInt, useTensorCores, useBytes,
                        device_id, kernelFile, sigterm_timeout_threshold_secs);
     else
         launch<__half>(runLength, useInt, useTensorCores, useBytes,
