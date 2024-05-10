@@ -63,6 +63,7 @@
 #include "cublas_v2.h"
 #define CUDA_ENABLE_DEPRECATED
 #include <cuda.h>
+#include "cuda_fp16.h"
 
 void _checkError(int rCode, std::string file, int line, std::string desc = "") {
     if (rCode != CUDA_SUCCESS) {
@@ -183,7 +184,7 @@ template <class T> class GPU_Test {
                "using %lu MB of it), %s%s\n",
                d_devNumber, totalMemory() / 1024ul / 1024ul,
                availMemory() / 1024ul / 1024ul, useBytes / 1024ul / 1024ul,
-               d_int ? "using INT" : "using FLOATS",
+               d_int ? "using INT" : "using FP16",
                d_tensors ? ", using Tensor Cores" : "");
         size_t d_resultSize = sizeof(T) * SIZE * SIZE;
         d_iters = (useBytes - 2 * d_resultSize) /
@@ -224,8 +225,8 @@ template <class T> class GPU_Test {
 
     void compute() {
         bind();
-        static const float alpha = 1.0f;
-        static const float beta = 0.0f;
+        static const __half alpha = __float2half(1.0f);
+        static const __half beta = __float2half(0.0f);
         static const int alphaD = 1;
         static const int betaD = 0;
 
@@ -237,9 +238,9 @@ template <class T> class GPU_Test {
             else
                 checkError(
                     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
-                                SIZE, &alpha, (const float *)d_Adata, SIZE,
-                                (const float *)d_Bdata, SIZE, &beta,
-                                (float *)d_Cdata + i * SIZE * SIZE, SIZE),
+                                SIZE, &alpha, (const __half *)d_Adata, SIZE,
+                                (const __half *)d_Bdata, SIZE, &beta,
+                                (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
                     "SGEMM");
         }
     }
@@ -918,7 +919,7 @@ int main(int argc, char **argv) {
         launch<int>(runLength, useInt, useTensorCores, useBytes,
                        device_id, kernelFile, sigterm_timeout_threshold_secs);
     else
-        launch<float>(runLength, useInt, useTensorCores, useBytes,
+        launch<__half>(runLength, useInt, useTensorCores, useBytes,
                       device_id, kernelFile, sigterm_timeout_threshold_secs);
 
     return 0;
