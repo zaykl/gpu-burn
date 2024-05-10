@@ -209,20 +209,20 @@ template <class T> class GPU_Test {
     }
 
     void int8Gemm(cublasHandle_t handle, int m, int n, int k,
-                const int32_t* A, int lda, const int32_t* B, int ldb,
-                int32_t* C, int ldc) {
+                const int16_t* A, int lda, const int16_t* B, int ldb,
+                int16_t* C, int ldc) {
         cublasOperation_t transa = CUBLAS_OP_N;
         cublasOperation_t transb = CUBLAS_OP_N;
-        const int32_t alpha = 1;
-        const int32_t beta = 0;
+        const int16_t alpha = 1;
+        const int16_t beta = 0;
         
         // Use CUBLAS_GEMM_DEFAULT_TENSOR_OP for enabling tensor core operations if supported
         cublasGemmEx(
             handle, transa, transb, m, n, k,
-            &alpha, A, CUDA_R_32I, lda, 
-                    B, CUDA_R_32I, ldb,
-            &beta,  C, CUDA_R_32I, ldc,
-            CUDA_R_32I, CUBLAS_GEMM_DEFAULT);
+            &alpha, A, CUDA_R_8I, lda, 
+                    B, CUDA_R_8I, ldb,
+            &beta,  C, CUDA_R_8I, ldc,
+            CUDA_R_8I, CUBLAS_GEMM_DEFAULT);
     }
 
     void fp16Gemm(cublasHandle_t handle, int m, int n, int k,
@@ -251,9 +251,9 @@ template <class T> class GPU_Test {
 
         for (size_t i = 0; i < d_iters; ++i) {
             if (d_int)
-                int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int32_t *)d_Adata, SIZE,
-                                (const int32_t *)d_Bdata, SIZE,
-                                (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE);
+                int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int16_t *)d_Adata, SIZE,
+                                (const int16_t *)d_Bdata, SIZE,
+                                (int16_t *)d_Cdata + i * SIZE * SIZE, SIZE);
             else
                 // checkError(
                 //     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
@@ -944,7 +944,7 @@ int main(int argc, char **argv) {
     printf("Burning for %d seconds.\n", runLength);
 
     if (useInt)
-        launch<int32_t>(runLength, useInt, useTensorCores, useBytes,
+        launch<int8_t>(runLength, useInt, useTensorCores, useBytes,
                        device_id, kernelFile, sigterm_timeout_threshold_secs);
     else
         launch<__half>(runLength, useInt, useTensorCores, useBytes,
