@@ -236,12 +236,18 @@ template <class T> class GPU_Test {
                                 (const int8_t *)d_Bdata, SIZE,
                                 (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE);
             else
+                // checkError(
+                //     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
+                //                 SIZE, &alpha, (const __half *)d_Adata, SIZE,
+                //                 (const __half *)d_Bdata, SIZE, &beta,
+                //                 (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
+                //     "SGEMM");
                 checkError(
-                    cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
+                    cublasHgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
                                 SIZE, &alpha, (const __half *)d_Adata, SIZE,
                                 (const __half *)d_Bdata, SIZE, &beta,
                                 (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
-                    "SGEMM");
+                    "HGEMM");
         }
     }
 
