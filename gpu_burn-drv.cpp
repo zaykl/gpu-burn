@@ -235,13 +235,6 @@ template <class T> class GPU_Test {
                 int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int8_t *)d_Adata, SIZE,
                                 (const int8_t *)d_Bdata, SIZE,
                                 (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE);
-
-                checkError(
-                    cublasLtMatmul(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
-                                SIZE, &alpha, (const __half *)d_Adata, SIZE,
-                                (const __half *)d_Bdata, SIZE, &beta,
-                                (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
-                    "IGEMM");
             else
                 // checkError(
                 //     cublasSgemm(d_cublas, CUBLAS_OP_N, CUBLAS_OP_N, SIZE, SIZE,
