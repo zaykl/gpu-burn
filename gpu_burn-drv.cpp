@@ -261,7 +261,7 @@ template <class T> class GPU_Test {
                 //                 (const __half *)d_Bdata, SIZE, &beta,
                 //                 (__half *)d_Cdata + i * SIZE * SIZE, SIZE),
                 //     "SGEMM");
-                int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const __half *)d_Adata, SIZE,
+                fp16Gemm(d_cublas, SIZE, SIZE, SIZE, (const __half *)d_Adata, SIZE,
                                 (const __half *)d_Bdata, SIZE,
                                 (__half *)d_Cdata + i * SIZE * SIZE, SIZE);
                 // checkError(
