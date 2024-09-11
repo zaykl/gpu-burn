@@ -85,4 +85,8 @@ can be set to change the resulting image tag:
     -h     Show this help message
     
     Example:
-    gpu_burn -d 3600
+    //burn fp16 600 second
+    ./gpu_burn  600
+    //burn int8 600 second
+    ./gpu_burn -d 600
+
