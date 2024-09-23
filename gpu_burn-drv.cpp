@@ -187,17 +187,33 @@ template <class T> class GPU_Test {
                d_int ? "using INT" : "using FP16",
                d_tensors ? ", using Tensor Cores" : "");
         size_t d_resultSize = sizeof(T) * SIZE * SIZE;
-        d_iters = (useBytes - 2 * d_resultSize) /
-                  d_resultSize; // We remove A and B sizes
-        printf("Results are %zu bytes each, thus performing %zu iterations\n",
+	if(d_int){
+          size_t int32_resultSize = sizeof(int32_t) * SIZE * SIZE;
+          d_iters = (useBytes - 2 * int32_resultSize) /
+                  int32_resultSize; // We remove A and B sizes
+          printf("Results are %zu bytes each, thus performing %zu iterations\n",
                d_resultSize, d_iters);
-        if ((size_t)useBytes < 3 * d_resultSize)
-        {
+          if ((size_t)useBytes < 3 * d_resultSize)
+          {
             throw std::string("Low mem for result. aborting.\n");
-        }
-        checkError(cuMemAlloc(&d_Cdata, d_iters * d_resultSize), "C alloc");
-        checkError(cuMemAlloc(&d_Adata, d_resultSize), "A alloc");
-        checkError(cuMemAlloc(&d_Bdata, d_resultSize), "B alloc");
+          }
+          checkError(cuMemAlloc(&d_Cdata, d_iters * int32_resultSize), "C alloc");
+          checkError(cuMemAlloc(&d_Adata, d_resultSize), "A alloc");
+          checkError(cuMemAlloc(&d_Bdata, d_resultSize), "B alloc");
+	
+	}else{
+          d_iters = (useBytes - 2 * d_resultSize) /
+                  d_resultSize; // We remove A and B sizes
+          printf("Results are %zu bytes each, thus performing %zu iterations\n",
+               d_resultSize, d_iters);
+          if ((size_t)useBytes < 3 * d_resultSize)
+          {
+            throw std::string("Low mem for result. aborting.\n");
+          }
+          checkError(cuMemAlloc(&d_Cdata, d_iters * d_resultSize), "C alloc");
+          checkError(cuMemAlloc(&d_Adata, d_resultSize), "A alloc");
+          checkError(cuMemAlloc(&d_Bdata, d_resultSize), "B alloc");
+	}
 
         checkError(cuMemAlloc(&d_faultyElemData, sizeof(int)), "faulty data");
 
@@ -213,8 +229,8 @@ template <class T> class GPU_Test {
                 int32_t* C, int ldc) {
         cublasOperation_t transa = CUBLAS_OP_N;
         cublasOperation_t transb = CUBLAS_OP_N;
-        const int16_t alpha = 1;
-        const int16_t beta = 0;
+        const int32_t alpha = 1;
+        const int32_t beta = 0;
         
         // Use CUBLAS_GEMM_DEFAULT_TENSOR_OP for enabling tensor core operations if supported
         cublasGemmEx(
@@ -251,6 +267,9 @@ template <class T> class GPU_Test {
 
         for (size_t i = 0; i < d_iters; ++i) {
             if (d_int)
+                //fp16Gemm(d_cublas, SIZE, SIZE, SIZE, (const __half *)d_Adata, SIZE,
+                //                (const __half *)d_Bdata, SIZE,
+                //                (__half *)d_Cdata + i * SIZE * SIZE, SIZE);
                 int8Gemm(d_cublas, SIZE, SIZE, SIZE, (const int8_t *)d_Adata, SIZE,
                                 (const int8_t *)d_Bdata, SIZE,
                                 (int32_t *)d_Cdata + i * SIZE * SIZE, SIZE);
@@ -387,7 +406,7 @@ void startBurn(int index, int writeFd, T *A, T *B, bool useInt, bool tensors,
 
         while (our->shouldRun()) {
             our->compute();
-            // our->compare();
+            //our->compare();
             checkError(cuEventRecord(events[eventIndex], 0), "Record event");
 
             eventIndex = ++eventIndex % maxEvents;
