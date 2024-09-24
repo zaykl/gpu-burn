@@ -406,7 +406,7 @@ void startBurn(int index, int writeFd, T *A, T *B, bool useInt, bool tensors,
 
         while (our->shouldRun()) {
             our->compute();
-            //our->compare();
+            our->compare();
             checkError(cuEventRecord(events[eventIndex], 0), "Record event");
 
             eventIndex = ++eventIndex % maxEvents;
