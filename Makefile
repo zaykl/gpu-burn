@@ -26,7 +26,7 @@ override LDFLAGS  += -Wl,-rpath=${CUDAPATH}/lib
 override LDFLAGS  += -lcublas
 override LDFLAGS  += -lcudart
 
-COMPUTE      ?= 50
+COMPUTE      ?= 72
 CUDA_VERSION ?= 11.8.0
 IMAGE_DISTRO ?= ubi8
 
@@ -41,6 +41,9 @@ IMAGE_NAME ?= gpu-burn
 gpu_burn: gpu_burn-drv.o compare.ptx
 	g++ -o $@ $< -O3 ${LDFLAGS}
 
+test: test_gemm.o
+	g++ -o $@ $< -O3 ${LDFLAGS}
+
 %.o: %.cpp
 	g++ ${CFLAGS} -c $<
 
@@ -48,7 +51,7 @@ gpu_burn: gpu_burn-drv.o compare.ptx
 	PATH="${PATH}:${CCPATH}:." ${NVCC} ${NVCCFLAGS} -ptx $< -o $@
 
 clean:
-	$(RM) *.ptx *.o gpu_burn
+	$(RM) *.ptx *.o gpu_burn test_gemm
 
 image:
 	docker build --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg IMAGE_DISTRO=${IMAGE_DISTRO} -t ${IMAGE_NAME} .
