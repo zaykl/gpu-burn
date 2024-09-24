@@ -227,7 +227,7 @@ template <class T> class GPU_Test {
     void int8Gemm(cublasHandle_t handle, int m, int n, int k,
                 const int8_t* A, int lda, const int8_t* B, int ldb,
                 int32_t* C, int ldc) {
-        cublasOperation_t transa = CUBLAS_OP_N;
+        cublasOperation_t transa = CUBLAS_OP_T;
         cublasOperation_t transb = CUBLAS_OP_N;
         const int32_t alpha = 1;
         const int32_t beta = 0;
@@ -238,13 +238,13 @@ template <class T> class GPU_Test {
             &alpha, A, CUDA_R_8I, lda, 
                     B, CUDA_R_8I, ldb,
             &beta,  C, CUDA_R_32I, ldc,
-            CUDA_R_32I, CUBLAS_GEMM_DEFAULT);
+            CUDA_R_32I, CUBLAS_GEMM_DEFAULT_TENSOR_OP);
     }
 
     void fp16Gemm(cublasHandle_t handle, int m, int n, int k,
                 const __half* A, int lda, const __half* B, int ldb,
                 __half* C, int ldc) {
-        cublasOperation_t transa = CUBLAS_OP_N;
+        cublasOperation_t transa = CUBLAS_OP_T;
         cublasOperation_t transb = CUBLAS_OP_N;
         static const __half alpha = __float2half(1.0f);
         static const __half beta = __float2half(0.0f);
@@ -255,7 +255,7 @@ template <class T> class GPU_Test {
             &alpha, A, CUDA_R_16F, lda, 
                     B, CUDA_R_16F, ldb,
             &beta,  C, CUDA_R_16F, ldc,
-            CUDA_R_16F, CUBLAS_GEMM_DEFAULT);
+            CUDA_R_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP);
     }
 
     void compute() {
