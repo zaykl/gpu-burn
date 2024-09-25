@@ -41,8 +41,11 @@ IMAGE_NAME ?= gpu-burn
 gpu_burn: gpu_burn-drv.o compare.ptx
 	g++ -o $@ $< -O3 ${LDFLAGS}
 
-test: test_gemm.o
+test_gemm: test_gemm.o
 	g++ -o $@ $< -O3 ${LDFLAGS}
+
+test_int: test_int.cu
+	nvcc -o $@ $< 
 
 %.o: %.cpp
 	g++ ${CFLAGS} -c $<
@@ -51,7 +54,7 @@ test: test_gemm.o
 	PATH="${PATH}:${CCPATH}:." ${NVCC} ${NVCCFLAGS} -ptx $< -o $@
 
 clean:
-	$(RM) *.ptx *.o gpu_burn test_gemm
+	$(RM) *.ptx *.o gpu_burn test_gemm test_int
 
 image:
 	docker build --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg IMAGE_DISTRO=${IMAGE_DISTRO} -t ${IMAGE_NAME} .

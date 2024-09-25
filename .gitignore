@@ -6,3 +6,4 @@ compare\.ptx
 
 gpu_burn
 test_gemm
+test_int

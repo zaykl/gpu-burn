@@ -35,7 +35,8 @@
 // Used to report op/s, measured through Visual Profiler, CUBLAS from CUDA 7.5
 // (Seems that they indeed take the naive dim^3 approach)
 //#define OPS_PER_MUL 17188257792ul // Measured for SIZE = 2048
-#define OPS_PER_MUL 1100048498688ul // Extrapolated for SIZE = 8192
+//#define OPS_PER_MUL 1100048498688ul // Extrapolated for SIZE = 8192
+#define OPS_PER_MUL SIZE*SIZE*SIZE*2
 
 #include <algorithm>
 #include <chrono>
@@ -577,7 +578,7 @@ void listenClients(std::vector<int> clientFd, std::vector<pid_t> clientPid,
                     clientGflops.at(i) =
                         (double)((unsigned long long int)processed *
                                  OPS_PER_MUL) /
-                        clientTimeDelta / 1000.0 / 1000.0 / 1000.0;
+                        clientTimeDelta / 1000.0 / 1000.0 / 1000.0 / 1000.0;
                     clientCalcs.at(i) += processed;
                 }
 
@@ -601,7 +602,7 @@ void listenClients(std::vector<int> clientFd, std::vector<pid_t> clientPid,
             printf("\r%.1f%%  ", elapsed);
             printf("proc'd: ");
             for (size_t i = 0; i < clientCalcs.size(); ++i) {
-                printf("%d (%.0f Gflop/s) ", clientCalcs.at(i),
+                printf("%d (%.0f Top/s) ", clientCalcs.at(i),
                        clientGflops.at(i));
                 if (i != clientCalcs.size() - 1)
                     printf("- ");
